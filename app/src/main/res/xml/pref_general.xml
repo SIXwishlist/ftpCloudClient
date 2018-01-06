@@ -1,0 +1,43 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <SwitchPreference
+        android:defaultValue="false"
+        android:key="ftp_ssl"
+        android:summary="to use sftp protocol"
+        android:title="SSL" />
+
+    <EditTextPreference
+        android:defaultValue="91.244.59.24"
+        android:key="ftp_host"
+        android:maxLines="1"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="Host" />
+
+    <EditTextPreference
+        android:capitalize="words"
+        android:defaultValue="21"
+        android:key="ftp_port"
+        android:maxLines="1"
+        android:inputType="number"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="Port" />
+
+    <EditTextPreference
+        android:capitalize="words"
+        android:defaultValue="guest"
+        android:key="ftp_username"
+        android:maxLines="1"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="Username" />
+    <EditTextPreference
+        android:capitalize="words"
+        android:defaultValue="guest"
+        android:key="ftp_password"
+        android:maxLines="1"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="Password" />
+</PreferenceScreen>
