@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 import com.sukinsan.cloudftp.R;
 import com.sukinsan.koshcloudcore.item.FtpItem;
+import com.sukinsan.koshcloudcore.util.CloudSyncUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,9 +43,11 @@ public class FtpFileAdapter extends RecyclerView.Adapter<FtpFileAdapter.Holder> 
 
     private Event callback;
     private List<FtpItem> items;
+    private CloudSyncUtil cloudSyncUtil;
 
-    public FtpFileAdapter(@NonNull Event callback) {
+    public FtpFileAdapter(@NonNull Event callback, CloudSyncUtil cloudSyncUtil) {
         this.callback = callback;
+        this.cloudSyncUtil = cloudSyncUtil;
         setNewItems(new ArrayList<FtpItem>());
     }
 
@@ -68,9 +71,9 @@ public class FtpFileAdapter extends RecyclerView.Adapter<FtpFileAdapter.Holder> 
     @Override
     public void onBindViewHolder(Holder holder, int position) {
         Log.i(TAG, "onBindViewHolder " + position);
-        holder.bgType.getBackground().setLevel(1);
 
         if (position == 0) {
+            holder.bgType.getBackground().setLevel(1);
             holder.name.setText("..");
             holder.root.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -80,11 +83,17 @@ public class FtpFileAdapter extends RecyclerView.Adapter<FtpFileAdapter.Holder> 
             });
         } else {
             final FtpItem ftpItem = items.get(position - 1);
-            if (!ftpItem.isDirectory()) {
+            if (ftpItem.isDirectory()) {
+                holder.bgType.getBackground().setLevel(1);
+                holder.name.setText("[" + ftpItem.getName() + "]");
+            } else {
                 holder.bgType.getBackground().setLevel(0);
+                if (cloudSyncUtil.isSynced(ftpItem)) {
+                    holder.name.setText(ftpItem.getName() + "*");
+                } else {
+                    holder.name.setText(ftpItem.getName());
+                }
             }
-            String name = ftpItem.isDirectory() ? "[" + ftpItem.getName() + "]" : ftpItem.getName();
-            holder.name.setText(name);
 
             holder.root.setOnClickListener(new View.OnClickListener() {
                 @Override

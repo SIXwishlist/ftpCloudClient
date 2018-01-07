@@ -6,6 +6,7 @@ import com.sukinsan.cloudftp.event.OnConnectedEvent;
 import com.sukinsan.cloudftp.event.OnReadEvent;
 import com.sukinsan.cloudftp.task.AsyncAction;
 import com.sukinsan.koshcloudcore.item.FtpItem;
+import com.sukinsan.koshcloudcore.util.CloudSyncUtil;
 import com.sukinsan.koshcloudcore.util.FtpUtils;
 import com.sukinsan.koshcloudcore.util.FtpUtilsImpl;
 
@@ -22,9 +23,11 @@ public class AsyncFtpUtilsImpl implements AsyncFtpUtils {
     private static final String TAG = AsyncFtpUtilsImpl.class.getSimpleName();
     private AsyncAction asyncAction;
     private FtpUtils ftpUtils;
+    private CloudSyncUtil cloudSyncUtil;
 
-    public AsyncFtpUtilsImpl() {
-        ftpUtils = new FtpUtilsImpl();
+    public AsyncFtpUtilsImpl(FtpUtils ftpUtils,CloudSyncUtil cloudSyncUtil) {
+        this.ftpUtils = ftpUtils;
+        this.cloudSyncUtil = cloudSyncUtil;
     }
 
     @Override
@@ -63,6 +66,11 @@ public class AsyncFtpUtilsImpl implements AsyncFtpUtils {
                 }
             }
         });
+    }
+
+    @Override
+    public int sync(FtpItem ftpItem) throws IOException {
+        return cloudSyncUtil.sync(ftpItem);
     }
 
     @Override

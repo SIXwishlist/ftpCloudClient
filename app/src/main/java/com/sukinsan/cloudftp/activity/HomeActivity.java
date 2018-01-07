@@ -2,6 +2,7 @@ package com.sukinsan.cloudftp.activity;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -15,39 +16,48 @@ import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.sukinsan.cloudftp.Constant;
 import com.sukinsan.cloudftp.R;
 import com.sukinsan.cloudftp.adapter.FtpFileAdapter;
 import com.sukinsan.cloudftp.event.OnConnectedEvent;
 import com.sukinsan.cloudftp.event.OnReadEvent;
-import com.sukinsan.cloudftp.util.AppUtil;
-import com.sukinsan.cloudftp.util.AppUtilImpl;
+import com.sukinsan.cloudftp.event.OnSynced;
+import com.sukinsan.cloudftp.service.SyncService;
 import com.sukinsan.cloudftp.util.AsyncFtpUtils;
 import com.sukinsan.cloudftp.util.AsyncFtpUtilsImpl;
 import com.sukinsan.koshcloudcore.item.FtpItem;
+import com.sukinsan.koshcloudcore.util.CloudSyncUtil;
+import com.sukinsan.koshcloudcore.util.CloudSyncUtilImpl;
+import com.sukinsan.koshcloudcore.util.FtpUtils;
+import com.sukinsan.koshcloudcore.util.FtpUtilsImpl;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-public class ScrollingActivity extends AppCompatActivity implements FtpFileAdapter.Event, View.OnClickListener, SwipeRefreshLayout.OnRefreshListener {
+public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Event, View.OnClickListener, SwipeRefreshLayout.OnRefreshListener {
 
-    private static final String TAG = ScrollingActivity.class.getSimpleName();
+    private static final String TAG = HomeActivity.class.getSimpleName();
     private RecyclerView list;
 
-    private String currentFolder = "/";
+    private String currentFolder = "/test/music/sod2001/CD2 [Bonus Disc]";
     private TextView dirTextView, statusBarTextView;
     private SwipeRefreshLayout swipeRefreshLayout;
     private AsyncFtpUtils asyncFtpUtils;
     private FtpFileAdapter ftpFileAdapter;
-    private AppUtil appUtil = new AppUtilImpl();
+
+    private FtpUtils ftpUtils;
+    private CloudSyncUtil cloudSyncUtil;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_scrolling);
 
-        asyncFtpUtils = new AsyncFtpUtilsImpl();
-        ftpFileAdapter = new FtpFileAdapter(this);
+        ftpUtils = new FtpUtilsImpl();
+        cloudSyncUtil = new CloudSyncUtilImpl(ftpUtils, Constant.getCloudFolder());
+        asyncFtpUtils = new AsyncFtpUtilsImpl(ftpUtils, cloudSyncUtil);
+        ftpFileAdapter = new FtpFileAdapter(this, cloudSyncUtil);
 
         statusBarTextView = findViewById(R.id.statusBar);
         dirTextView = findViewById(R.id.txt_dir);
@@ -97,13 +107,21 @@ public class ScrollingActivity extends AppCompatActivity implements FtpFileAdapt
 
     @Override
     public void OnFtpBackClick() {
-        openFtpFolder(appUtil.getParentOf(currentFolder));
+        openFtpFolder(cloudSyncUtil.getPathParent(currentFolder));
     }
 
     @Override
     public void OnFtpItemClick(FtpItem ftpItem) {
         if (ftpItem.isDirectory()) {
             openFtpFolder(ftpItem.getPath());
+        } else if (cloudSyncUtil.isSynced(ftpItem)) {
+            Uri uri = Uri.parse(cloudSyncUtil.getDestination(ftpItem));
+            Intent intent = new Intent(Intent.ACTION_VIEW);
+            intent.setDataAndType(uri, "*/*");
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+        } else {
+            SyncService.sync(this, ftpItem);
         }
     }
 
@@ -127,6 +145,16 @@ public class ScrollingActivity extends AppCompatActivity implements FtpFileAdapt
             Log.i(TAG, "OnRead " + event.list);
             statusBarTextView.setText(event.list.size() + " elements in folder");
             ftpFileAdapter.setNewItems(event.list);
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void OnRead(OnSynced event) {
+        if (event.errorMessage != null) {
+            Toast.makeText(this, event.errorMessage, Toast.LENGTH_LONG).show();
+        } else {
+            ftpFileAdapter.notifyDataSetChanged();
+            Toast.makeText(this, event.amount + " synced", Toast.LENGTH_LONG).show();
         }
     }
 
