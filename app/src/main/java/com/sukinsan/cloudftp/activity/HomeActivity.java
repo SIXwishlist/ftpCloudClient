@@ -40,7 +40,7 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
     private static final String TAG = HomeActivity.class.getSimpleName();
     private RecyclerView list;
 
-    private String currentFolder = "/test/music/sod2001/CD2 [Bonus Disc]";
+    private String currentFolder = "/";
     private TextView dirTextView, statusBarTextView;
     private SwipeRefreshLayout swipeRefreshLayout;
     private AsyncFtpUtils asyncFtpUtils;
@@ -57,7 +57,7 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
         ftpUtils = new FtpUtilsImpl();
         cloudSyncUtil = new CloudSyncUtilImpl(ftpUtils, Constant.getCloudFolder());
         asyncFtpUtils = new AsyncFtpUtilsImpl(ftpUtils, cloudSyncUtil);
-        ftpFileAdapter = new FtpFileAdapter(this, cloudSyncUtil);
+        ftpFileAdapter = new FtpFileAdapter(this);
 
         statusBarTextView = findViewById(R.id.statusBar);
         dirTextView = findViewById(R.id.txt_dir);
@@ -106,16 +106,30 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
     }
 
     @Override
-    public void OnFtpBackClick() {
+    public boolean isSynced(FtpItem ftpItem) {
+        return cloudSyncUtil.isSynced(ftpItem);
+    }
+
+    @Override
+    public void OnActionFtpBack() {
         openFtpFolder(cloudSyncUtil.getPathParent(currentFolder));
     }
 
     @Override
-    public void OnFtpItemClick(FtpItem ftpItem) {
+    public void onBackPressed() {
+        if (currentFolder.equals("/")) {
+            super.onBackPressed();
+        } else {
+            OnActionFtpBack();
+        }
+    }
+
+    @Override
+    public void OnActionExecute(FtpItem ftpItem) {
         if (ftpItem.isDirectory()) {
             openFtpFolder(ftpItem.getPath());
         } else if (cloudSyncUtil.isSynced(ftpItem)) {
-            Uri uri = Uri.parse(cloudSyncUtil.getDestination(ftpItem));
+            Uri uri = Uri.parse(cloudSyncUtil.getLocationInFolder(ftpItem));
             Intent intent = new Intent(Intent.ACTION_VIEW);
             intent.setDataAndType(uri, "*/*");
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -123,6 +137,31 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
         } else {
             SyncService.sync(this, ftpItem);
         }
+    }
+
+    @Override
+    public void OnActionDownload(FtpItem ftpItem) {
+
+    }
+
+    @Override
+    public void OnActionMoveToDownload(FtpItem ftpItem) {
+
+    }
+
+    @Override
+    public void OnActionSync(FtpItem ftpItem) {
+
+    }
+
+    @Override
+    public void OnActionUnSync(FtpItem ftpItem) {
+
+    }
+
+    @Override
+    public void OnActionDelete(FtpItem ftpItem) {
+
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

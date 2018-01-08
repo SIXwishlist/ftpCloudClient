@@ -105,7 +105,7 @@ public class SyncService extends IntentService {
         Notification.Builder builder = new Notification.Builder(this)
                 .setContentTitle(title)
                 .setContentText(message)
-                .setSmallIcon(R.drawable.ic_folder_24dp);
+                .setSmallIcon(R.drawable.ic_folder);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             builder.setChannelId(CHANNEL_ID);
