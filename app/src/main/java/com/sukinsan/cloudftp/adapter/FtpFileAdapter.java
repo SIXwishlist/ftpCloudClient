@@ -8,10 +8,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.sukinsan.cloudftp.Constant;
 import com.sukinsan.cloudftp.R;
 import com.sukinsan.koshcloudcore.item.FtpItem;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -24,68 +27,71 @@ public class FtpFileAdapter extends RecyclerView.Adapter<FtpFileAdapter.Holder> 
     public interface Event {
         boolean isSynced(FtpItem ftpItem);
 
-        void OnActionFtpBack();
-
         void OnActionExecute(FtpItem ftpItem);
 
         void OnActionDownload(FtpItem ftpItem);
 
-        void OnActionMoveToDownload(FtpItem ftpItem);
-
         void OnActionSync(FtpItem ftpItem);
-
-        void OnActionUnSync(FtpItem ftpItem);
 
         void OnActionDelete(FtpItem ftpItem);
 
     }
 
-    public class Holder extends RecyclerView.ViewHolder {
-        private View root;
-        private View actions;
-        private View bgType;
-        private TextView name;
+    public class Holder extends RecyclerView.ViewHolder implements View.OnClickListener {
+        private final View
+                fileLayout,
+                fileType,
+                actionsLayout,
+                actionExe,
+                actionSync,
+                actionDownload,
+                actionDelete;
+        private TextView fileName, fileSize;
 
         public Holder(View itemView) {
             super(itemView);
-            root = itemView;
-            actions = itemView.findViewById(R.id.actions);
-            name = itemView.findViewById(R.id.name);
-            bgType = itemView.findViewById(R.id.bgType);
+
+            fileLayout = itemView.findViewById(R.id.fileLayout);
+            fileName = itemView.findViewById(R.id.name);
+            fileSize = itemView.findViewById(R.id.file_size);
+            fileType = itemView.findViewById(R.id.bgType);
+
+            actionsLayout = itemView.findViewById(R.id.actions);
+            actionExe = itemView.findViewById(R.id.action_exe);
+            actionSync = itemView.findViewById(R.id.action_sync);
+            actionDownload = itemView.findViewById(R.id.action_download);
+            actionDelete = itemView.findViewById(R.id.action_delete);
+
+            fileLayout.setOnClickListener(this);
+            actionExe.setOnClickListener(this);
+            actionSync.setOnClickListener(this);
+            actionDownload.setOnClickListener(this);
+            actionDelete.setOnClickListener(this);
         }
 
-        public void bindTopFolder(final Event callback) {
-            actions.setVisibility(View.GONE);
-            bgType.getBackground().setLevel(0);
-            name.setText("..");
-            root.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    callback.OnActionFtpBack();
-                }
-            });
-        }
-
-        public void bind(final FtpItem ftpItem, final Event callback) {
+        public void bind(final FtpItem ftpItem) {
             if (ftpItem.isDirectory()) {
-                bgType.getBackground().setLevel(0);
-                name.setText("[" + ftpItem.getName() + "]");
+                fileType.getBackground().setLevel(0);
+                fileName.setText("[" + ftpItem.getName() + "]");
+                fileSize.setText(null);
             } else {
                 if (callback.isSynced(ftpItem)) {
-                    bgType.getBackground().setLevel(2);
+                    fileType.getBackground().setLevel(2);
                 } else {
-                    bgType.getBackground().setLevel(1);
+                    fileType.getBackground().setLevel(1);
                 }
-                name.setText(ftpItem.getName());
+                fileSize.setText(Constant.getSize(ftpItem.length()));
+                fileName.setText(ftpItem.getName());
             }
 
-            if (selected != null && ftpItem.getPath().equals(selected.getPath())) {
-                actions.setVisibility(View.VISIBLE);
+            if (selected == null || !ftpItem.getPath().equals(selected.getPath())) {
+                actionsLayout.setVisibility(View.GONE);
             } else {
-                actions.setVisibility(View.GONE);
+                actionsLayout.setVisibility(View.VISIBLE);
+                actionExe.setOnClickListener(this);
             }
 
-            root.setOnLongClickListener(new View.OnLongClickListener() {
+            fileLayout.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View view) {
                     selected = ftpItem;
@@ -94,7 +100,7 @@ public class FtpFileAdapter extends RecyclerView.Adapter<FtpFileAdapter.Holder> 
                 }
             });
 
-            root.setOnClickListener(new View.OnClickListener() {
+            fileLayout.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     selected = null;
@@ -106,6 +112,24 @@ public class FtpFileAdapter extends RecyclerView.Adapter<FtpFileAdapter.Holder> 
                     }
                 }
             });
+        }
+
+        @Override
+        public void onClick(View view) {
+            switch (view.getId()) {
+                case R.id.action_exe:
+                    callback.OnActionExecute(selected);
+                    break;
+                case R.id.action_sync:
+                    callback.OnActionSync(selected);
+                    break;
+                case R.id.action_download:
+                    callback.OnActionDownload(selected);
+                    break;
+                case R.id.action_delete:
+                    callback.OnActionDelete(selected);
+                    break;
+            }
         }
     }
 
@@ -139,16 +163,12 @@ public class FtpFileAdapter extends RecyclerView.Adapter<FtpFileAdapter.Holder> 
     public void onBindViewHolder(Holder holder, int position) {
         Log.i(TAG, "onBindViewHolder " + position);
 
-        if (position == 0) {
-            holder.bindTopFolder(callback);
-        } else {
-            FtpItem ftpItem = items.get(position - 1);
-            holder.bind(ftpItem, callback);
-        }
+        FtpItem ftpItem = items.get(position);
+        holder.bind(ftpItem);
     }
 
     @Override
     public int getItemCount() {
-        return items.size() + 1;
+        return items.size();
     }
 }

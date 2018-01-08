@@ -2,7 +2,6 @@ package com.sukinsan.cloudftp.activity;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -11,8 +10,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.View;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -25,6 +22,8 @@ import com.sukinsan.cloudftp.event.OnSynced;
 import com.sukinsan.cloudftp.service.SyncService;
 import com.sukinsan.cloudftp.util.AsyncFtpUtils;
 import com.sukinsan.cloudftp.util.AsyncFtpUtilsImpl;
+import com.sukinsan.cloudftp.util.SystemUtils;
+import com.sukinsan.cloudftp.util.SystemUtilsImpl;
 import com.sukinsan.koshcloudcore.item.FtpItem;
 import com.sukinsan.koshcloudcore.util.CloudSyncUtil;
 import com.sukinsan.koshcloudcore.util.CloudSyncUtilImpl;
@@ -34,6 +33,8 @@ import com.sukinsan.koshcloudcore.util.FtpUtilsImpl;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+
+import java.io.File;
 
 public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Event, View.OnClickListener, SwipeRefreshLayout.OnRefreshListener {
 
@@ -46,6 +47,7 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
     private AsyncFtpUtils asyncFtpUtils;
     private FtpFileAdapter ftpFileAdapter;
 
+    private SystemUtils systemUtils;
     private FtpUtils ftpUtils;
     private CloudSyncUtil cloudSyncUtil;
 
@@ -54,6 +56,7 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_scrolling);
 
+        systemUtils = new SystemUtilsImpl(this);
         ftpUtils = new FtpUtilsImpl();
         cloudSyncUtil = new CloudSyncUtilImpl(ftpUtils, Constant.getCloudFolder());
         asyncFtpUtils = new AsyncFtpUtilsImpl(ftpUtils, cloudSyncUtil);
@@ -111,16 +114,11 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
     }
 
     @Override
-    public void OnActionFtpBack() {
-        openFtpFolder(cloudSyncUtil.getPathParent(currentFolder));
-    }
-
-    @Override
     public void onBackPressed() {
         if (currentFolder.equals("/")) {
             super.onBackPressed();
         } else {
-            OnActionFtpBack();
+            openFtpFolder(cloudSyncUtil.getPathParent(currentFolder));
         }
     }
 
@@ -129,11 +127,7 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
         if (ftpItem.isDirectory()) {
             openFtpFolder(ftpItem.getPath());
         } else if (cloudSyncUtil.isSynced(ftpItem)) {
-            Uri uri = Uri.parse(cloudSyncUtil.getLocationInFolder(ftpItem));
-            Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setDataAndType(uri, "*/*");
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
+            systemUtils.exec(new File(cloudSyncUtil.getLocationInFolder(ftpItem)));
         } else {
             SyncService.sync(this, ftpItem);
         }
@@ -145,18 +139,8 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
     }
 
     @Override
-    public void OnActionMoveToDownload(FtpItem ftpItem) {
-
-    }
-
-    @Override
     public void OnActionSync(FtpItem ftpItem) {
-
-    }
-
-    @Override
-    public void OnActionUnSync(FtpItem ftpItem) {
-
+        SyncService.sync(this, ftpItem);
     }
 
     @Override
@@ -182,13 +166,15 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
         } else {
             swipeRefreshLayout.setRefreshing(false);
             Log.i(TAG, "OnRead " + event.list);
-            statusBarTextView.setText(event.list.size() + " elements in folder");
+            long size = 0;
+            for (FtpItem ftpItem : event.list) size += ftpItem.length();
+            statusBarTextView.setText(event.list.size() + " elements in folder, size of files here is " + Constant.getSize(size));
             ftpFileAdapter.setNewItems(event.list);
         }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void OnRead(OnSynced event) {
+    public void OnSynced(OnSynced event) {
         if (event.errorMessage != null) {
             Toast.makeText(this, event.errorMessage, Toast.LENGTH_LONG).show();
         } else {
@@ -202,21 +188,6 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
         asyncFtpUtils.disconnect();
         EventBus.getDefault().unregister(this);
         super.onStop();
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_scrolling, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
     }
 
     @Override
