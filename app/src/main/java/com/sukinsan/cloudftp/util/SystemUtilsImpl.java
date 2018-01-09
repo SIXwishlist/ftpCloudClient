@@ -3,6 +3,8 @@ package com.sukinsan.cloudftp.util;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.support.v4.content.FileProvider;
+import android.util.Log;
 
 import java.io.File;
 
@@ -12,6 +14,7 @@ import java.io.File;
 
 public class SystemUtilsImpl implements SystemUtils {
 
+    private static final String TAG = SystemUtils.class.getSimpleName();
     private Context context;
 
     public SystemUtilsImpl(Context context) {
@@ -21,8 +24,9 @@ public class SystemUtilsImpl implements SystemUtils {
     @Override
     public void exec(File file) {
         String filename = file.getName().toLowerCase();
-
-        Uri uri = Uri.fromFile(file);
+        String packageNameProvider = context.getPackageName() + ".fileprovider";
+        Log.i(TAG, "packageNameProvider " + packageNameProvider);
+        Uri uri = FileProvider.getUriForFile(context, packageNameProvider, file);
 
         Intent intent = new Intent(Intent.ACTION_VIEW);
         if (filename.contains(".doc") || filename.contains(".docx")) {
@@ -51,7 +55,9 @@ public class SystemUtilsImpl implements SystemUtils {
             intent.setDataAndType(uri, "*/*");
         }
 
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
         context.startActivity(intent);
     }
 }
