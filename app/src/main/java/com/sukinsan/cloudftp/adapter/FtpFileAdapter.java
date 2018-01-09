@@ -12,9 +12,7 @@ import com.sukinsan.cloudftp.Constant;
 import com.sukinsan.cloudftp.R;
 import com.sukinsan.koshcloudcore.item.FtpItem;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -35,6 +33,8 @@ public class FtpFileAdapter extends RecyclerView.Adapter<FtpFileAdapter.Holder> 
 
         void OnActionDelete(FtpItem ftpItem);
 
+        void OnActionShare(FtpItem ftpItem);
+
     }
 
     public class Holder extends RecyclerView.ViewHolder implements View.OnClickListener {
@@ -45,7 +45,8 @@ public class FtpFileAdapter extends RecyclerView.Adapter<FtpFileAdapter.Holder> 
                 actionExe,
                 actionSync,
                 actionDownload,
-                actionDelete;
+                actionDelete,
+                actionShare;
         private TextView fileName, fileSize;
 
         public Holder(View itemView) {
@@ -61,12 +62,14 @@ public class FtpFileAdapter extends RecyclerView.Adapter<FtpFileAdapter.Holder> 
             actionSync = itemView.findViewById(R.id.action_sync);
             actionDownload = itemView.findViewById(R.id.action_download);
             actionDelete = itemView.findViewById(R.id.action_delete);
+            actionShare = itemView.findViewById(R.id.action_share);
 
             fileLayout.setOnClickListener(this);
             actionExe.setOnClickListener(this);
             actionSync.setOnClickListener(this);
             actionDownload.setOnClickListener(this);
             actionDelete.setOnClickListener(this);
+            actionShare.setOnClickListener(this);
         }
 
         public void bind(final FtpItem ftpItem) {
@@ -128,6 +131,9 @@ public class FtpFileAdapter extends RecyclerView.Adapter<FtpFileAdapter.Holder> 
                     break;
                 case R.id.action_delete:
                     callback.OnActionDelete(selected);
+                    break;
+                case R.id.action_share:
+                    callback.OnActionShare(selected);
                     break;
             }
         }

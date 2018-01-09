@@ -62,6 +62,12 @@
             android:gravity="center"
             android:text="@string/action_download" />
 
+        <ImageView
+            android:id="@+id/action_share"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_share" />
+
         <TextView
             android:id="@+id/action_sync"
             android:layout_width="0dp"

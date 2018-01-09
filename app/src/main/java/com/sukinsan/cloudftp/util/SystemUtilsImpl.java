@@ -23,41 +23,58 @@ public class SystemUtilsImpl implements SystemUtils {
 
     @Override
     public void exec(File file) {
-        String filename = file.getName().toLowerCase();
+        Uri uri = getUri(file);
+
+        context.startActivity(new Intent(Intent.ACTION_VIEW)
+                .setDataAndType(uri, getFileMimeType(file))
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION));
+    }
+
+    @Override
+    public void share(File file) {
+        Uri uri = getUri(file);
+
+        context.startActivity(new Intent(Intent.ACTION_SEND)
+                .setDataAndType(uri, getFileMimeType(file)));
+    }
+
+    @Override
+    public Uri getUri(File file) {
         String packageNameProvider = context.getPackageName() + ".fileprovider";
         Log.i(TAG, "packageNameProvider " + packageNameProvider);
-        Uri uri = FileProvider.getUriForFile(context, packageNameProvider, file);
-
-        Intent intent = new Intent(Intent.ACTION_VIEW);
-        if (filename.contains(".doc") || filename.contains(".docx")) {
-            intent.setDataAndType(uri, "application/msword");
-        } else if (filename.contains(".pdf")) {
-            intent.setDataAndType(uri, "application/pdf");
-        } else if (filename.contains(".ppt") || filename.contains(".pptx")) {
-            intent.setDataAndType(uri, "application/vnd.ms-powerpoint");
-        } else if (filename.contains(".xls") || filename.contains(".xlsx")) {
-            intent.setDataAndType(uri, "application/vnd.ms-excel");
-        } else if (filename.contains(".zip") || filename.contains(".rar")) {
-            intent.setDataAndType(uri, "application/zip");
-        } else if (filename.contains(".rtf")) {
-            intent.setDataAndType(uri, "application/rtf");
-        } else if (filename.contains(".wav") || filename.contains(".mp3")) {
-            intent.setDataAndType(uri, "audio/x-wav");
-        } else if (filename.contains(".gif")) {
-            intent.setDataAndType(uri, "image/gif");
-        } else if (filename.contains(".jpg") || filename.contains(".jpeg") || filename.contains(".png")) {
-            intent.setDataAndType(uri, "image/jpeg");
-        } else if (filename.contains(".txt")) {
-            intent.setDataAndType(uri, "text/plain");
-        } else if (filename.contains(".3gp") || filename.contains(".mpg") || filename.contains(".mpeg") || filename.contains(".mpe") || filename.contains(".mp4") || filename.contains(".avi")) {
-            intent.setDataAndType(uri, "video/*");
-        } else {
-            intent.setDataAndType(uri, "*/*");
-        }
-
-        intent
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        context.startActivity(intent);
+        return FileProvider.getUriForFile(context, packageNameProvider, file);
     }
+
+    @Override
+    public String getFileMimeType(File file) {
+        String filename = file.getName();
+
+        if (filename.contains(".doc") || filename.contains(".docx")) {
+            return "application/msword";
+        } else if (filename.contains(".pdf")) {
+            return "application/pdf";
+        } else if (filename.contains(".ppt") || filename.contains(".pptx")) {
+            return "application/vnd.ms-powerpoint";
+        } else if (filename.contains(".xls") || filename.contains(".xlsx")) {
+            return "application/vnd.ms-excel";
+        } else if (filename.contains(".zip") || filename.contains(".rar")) {
+            return "application/zip";
+        } else if (filename.contains(".rtf")) {
+            return "application/rtf";
+        } else if (filename.contains(".wav") || filename.contains(".mp3")) {
+            return "audio/x-wav";
+        } else if (filename.contains(".gif")) {
+            return "image/gif";
+        } else if (filename.contains(".jpg") || filename.contains(".jpeg") || filename.contains(".png")) {
+            return "image/jpeg";
+        } else if (filename.contains(".txt")) {
+            return "text/plain";
+        } else if (filename.contains(".3gp") || filename.contains(".mpg") || filename.contains(".mpeg") || filename.contains(".mpe") || filename.contains(".mp4") || filename.contains(".avi")) {
+            return "video/*";
+        } else {
+            return "*/*";
+        }
+    }
+
 }

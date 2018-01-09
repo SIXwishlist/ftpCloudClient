@@ -134,6 +134,11 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
     }
 
     @Override
+    public void OnActionShare(FtpItem ftpItem) {
+        systemUtils.share(new File(cloudSyncUtil.getLocationInFolder(ftpItem)));
+    }
+
+    @Override
     public void OnActionDownload(FtpItem ftpItem) {
 
     }
