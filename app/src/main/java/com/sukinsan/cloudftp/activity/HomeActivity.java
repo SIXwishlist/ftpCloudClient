@@ -140,7 +140,7 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
 
     @Override
     public void OnActionDownload(FtpItem ftpItem) {
-        Toast.makeText(this,"download not implemented yet",Toast.LENGTH_SHORT).show();
+        SyncService.download(this, ftpItem);
     }
 
     @Override
@@ -150,7 +150,7 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
 
     @Override
     public void OnActionDelete(FtpItem ftpItem) {
-        Toast.makeText(this,"delete not implemented yet",Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "delete not implemented yet", Toast.LENGTH_SHORT).show();
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

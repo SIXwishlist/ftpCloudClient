@@ -12,6 +12,10 @@ import java.util.Arrays;
 public class Constant {
     private final static String CLOUD_FOLDER_NAME = "myCloudFtpFolder";
 
+    public static String getDownloadFolder(){
+        return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
+    }
+
     public static String getCloudFolder() {
         File f = new File(Environment.getExternalStorageDirectory().getAbsolutePath(), CLOUD_FOLDER_NAME);
         if (!f.exists()) {

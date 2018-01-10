@@ -78,11 +78,9 @@ public class FtpFileAdapter extends RecyclerView.Adapter<FtpFileAdapter.Holder> 
                 fileSize.setText(null);
 
                 actionExe.setText(R.string.action_open);
-                actionDownload.setVisibility(View.INVISIBLE);
                 actionShare.setVisibility(View.INVISIBLE);
             } else {
                 actionExe.setText(R.string.action_execute);
-                actionDownload.setVisibility(View.VISIBLE);
                 actionShare.setVisibility(View.VISIBLE);
 
                 if (callback.isSynced(ftpItem)) {

@@ -28,7 +28,10 @@ import java.io.IOException;
 
 public class SyncService extends IntentService {
 
-    private static final String TAG = SyncService.class.getSimpleName();
+    public static final String
+            TAG = SyncService.class.getSimpleName(),
+            ACTION_SYNC = "ACTION_SYNC",
+            ACTION_DOWNLOAD = "ACTION_DOWNLOAD";
 
     private FtpUtils ftpUtils;
     private CloudSyncUtil cloudSyncUtil;
@@ -39,6 +42,14 @@ public class SyncService extends IntentService {
 
     public static void sync(Context context, FtpItem ftpItem) {
         context.startService(new Intent(context, SyncService.class)
+                .setAction(ACTION_SYNC)
+                .putExtra(FtpItem.class.getSimpleName(), ftpItem)
+        );
+    }
+
+    public static void download(Context context, FtpItem ftpItem) {
+        context.startService(new Intent(context, SyncService.class)
+                .setAction(ACTION_DOWNLOAD)
                 .putExtra(FtpItem.class.getSimpleName(), ftpItem)
         );
     }
@@ -48,28 +59,14 @@ public class SyncService extends IntentService {
         super.onCreate();
 
         ftpUtils = new FtpUtilsImpl();
+
         cloudSyncUtil = new CloudSyncUtilImpl(ftpUtils, Constant.getCloudFolder());
         Log.i(TAG, "onCreate()");
     }
 
-    @Override
-    protected void onHandleIntent(@Nullable Intent intent) {
-        FtpItem item = (FtpItem) intent.getSerializableExtra(FtpItem.class.getSimpleName());
-        Log.i(TAG, "prepear to sync " + item.getName());
-        try {
-            sync(item);
-        } catch (IOException e) {
-            e.printStackTrace();
-            EventBus.getDefault().post(new OnSynced(e));
-        }
-    }
-
-    private void sync(final FtpItem ftpItem) throws IOException {
-        showNotification(getString(R.string.app_name), "syncing " + ftpItem.getName());
-        Log.i(TAG, "start sync " + ftpItem.getName());
-
-        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+    private void checkConnection() {
         if (!ftpUtils.getFtpClient().isConnected()) {
+            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
             ftpUtils.connect(
                     sharedPref.getString("ftp_host", ""),
                     Integer.valueOf(sharedPref.getString("ftp_port", "21")),
@@ -78,12 +75,51 @@ public class SyncService extends IntentService {
                     sharedPref.getBoolean("ftp_ssl", false)
             );
         }
+    }
+
+    @Override
+    protected void onHandleIntent(@Nullable Intent intent) {
+        FtpItem item = (FtpItem) intent.getSerializableExtra(FtpItem.class.getSimpleName());
+        String action = intent.getAction();
+        Log.i(TAG, "prepear to sync " + item.getName());
+        try {
+            switch (action) {
+                case ACTION_SYNC:
+                    sync(item);
+                    break;
+                case ACTION_DOWNLOAD:
+                    sync(item, Constant.getDownloadFolder());
+                    break;
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            EventBus.getDefault().post(new OnSynced(e));
+        }
+    }
+
+    private void sync(FtpItem ftpItem, String syncFolder) throws IOException {
+        checkConnection();
+        showNotification(getString(R.string.app_name), "Downloading " + ftpItem.getName());
+        Log.i(TAG, "start download " + ftpItem.getName());
+
+        int r = cloudSyncUtil.sync(ftpItem, syncFolder);
+        EventBus.getDefault().post(new OnSynced(r, ftpItem));
+
+        stopForeground(true);
+        Log.i(TAG, "finish download" + ftpItem.getName());
+    }
+
+    private void sync(FtpItem ftpItem) throws IOException {
+        checkConnection();
+        showNotification(getString(R.string.app_name), "Syncing " + ftpItem.getName());
+        Log.i(TAG, "start sync " + ftpItem.getName());
 
         int r = cloudSyncUtil.sync(ftpItem);
         EventBus.getDefault().post(new OnSynced(r, ftpItem));
 
         stopForeground(true);
-        Log.i(TAG, "finish " + ftpItem.getName());
+        Log.i(TAG, "finish sync" + ftpItem.getName());
     }
 
     @Override
@@ -112,7 +148,7 @@ public class SyncService extends IntentService {
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationManager mNotificationManager =(NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             mNotificationManager.createNotificationChannel(mChannel);
         }
 
