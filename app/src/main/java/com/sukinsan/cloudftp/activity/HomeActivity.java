@@ -17,6 +17,9 @@ import com.sukinsan.cloudftp.Constant;
 import com.sukinsan.cloudftp.R;
 import com.sukinsan.cloudftp.adapter.FtpFileAdapter;
 import com.sukinsan.cloudftp.event.OnConnectedEvent;
+import com.sukinsan.cloudftp.event.OnDeleted;
+import com.sukinsan.cloudftp.event.OnFtpBusy;
+import com.sukinsan.cloudftp.event.OnMessage;
 import com.sukinsan.cloudftp.event.OnReadEvent;
 import com.sukinsan.cloudftp.event.OnSynced;
 import com.sukinsan.cloudftp.service.SyncService;
@@ -139,18 +142,13 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
     }
 
     @Override
-    public void OnActionDownload(FtpItem ftpItem) {
-        SyncService.download(this, ftpItem);
-    }
-
-    @Override
     public void OnActionSync(FtpItem ftpItem) {
         SyncService.sync(this, ftpItem);
     }
 
     @Override
     public void OnActionDelete(FtpItem ftpItem) {
-        Toast.makeText(this, "delete not implemented yet", Toast.LENGTH_SHORT).show();
+        asyncFtpUtils.delete(ftpItem);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -186,6 +184,21 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
             ftpFileAdapter.notifyDataSetChanged();
             Toast.makeText(this, event.amount + " synced", Toast.LENGTH_LONG).show();
         }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void OnSynced(OnDeleted event) {
+        Toast.makeText(this, event.ftpItem.getName() + " has been removed", Toast.LENGTH_LONG).show();
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void OnSynced(OnFtpBusy event) {
+        Toast.makeText(this, event.message, Toast.LENGTH_SHORT).show();
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void OnSynced(OnMessage event) {
+        Toast.makeText(this, event.message, Toast.LENGTH_SHORT).show();
     }
 
     @Override

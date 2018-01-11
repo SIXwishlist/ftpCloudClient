@@ -10,13 +10,13 @@ import java.io.IOException;
 
 public interface AsyncFtpUtils {
 
-    void connect(String host, int port, String username, String password, boolean ssl);
-
     boolean isConnected();
+
+    void connect(String host, int port, String username, String password, boolean ssl);
 
     void read(String pathOnConnected);
 
-    int sync(FtpItem ftpItem) throws IOException;
+    void delete(FtpItem ftpItem);
 
     void disconnect();
 }

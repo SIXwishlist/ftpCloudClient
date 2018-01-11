@@ -27,8 +27,6 @@ public class FtpFileAdapter extends RecyclerView.Adapter<FtpFileAdapter.Holder> 
 
         void OnActionExecute(FtpItem ftpItem);
 
-        void OnActionDownload(FtpItem ftpItem);
-
         void OnActionSync(FtpItem ftpItem);
 
         void OnActionDelete(FtpItem ftpItem);
@@ -43,7 +41,6 @@ public class FtpFileAdapter extends RecyclerView.Adapter<FtpFileAdapter.Holder> 
                 fileType,
                 actionsLayout,
                 actionSync,
-                actionDownload,
                 actionDelete,
                 actionShare;
         private TextView fileName, fileSize, actionExe;
@@ -59,14 +56,12 @@ public class FtpFileAdapter extends RecyclerView.Adapter<FtpFileAdapter.Holder> 
             actionsLayout = itemView.findViewById(R.id.actions);
             actionExe = itemView.findViewById(R.id.action_exe);
             actionSync = itemView.findViewById(R.id.action_sync);
-            actionDownload = itemView.findViewById(R.id.action_download);
             actionDelete = itemView.findViewById(R.id.action_delete);
             actionShare = itemView.findViewById(R.id.action_share);
 
             fileLayout.setOnClickListener(this);
             actionExe.setOnClickListener(this);
             actionSync.setOnClickListener(this);
-            actionDownload.setOnClickListener(this);
             actionDelete.setOnClickListener(this);
             actionShare.setOnClickListener(this);
         }
@@ -131,9 +126,6 @@ public class FtpFileAdapter extends RecyclerView.Adapter<FtpFileAdapter.Holder> 
                 case R.id.action_sync:
                     callback.OnActionSync(selected);
                     break;
-                case R.id.action_download:
-                    callback.OnActionDownload(selected);
-                    break;
                 case R.id.action_delete:
                     callback.OnActionDelete(selected);
                     break;
@@ -161,6 +153,7 @@ public class FtpFileAdapter extends RecyclerView.Adapter<FtpFileAdapter.Holder> 
 
     public void clear() {
         this.items.clear();
+        this.selected = null;
         notifyDataSetChanged();
     }
 
