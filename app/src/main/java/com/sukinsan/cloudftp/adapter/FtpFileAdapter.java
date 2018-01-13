@@ -40,10 +40,11 @@ public class FtpFileAdapter extends RecyclerView.Adapter<FtpFileAdapter.Holder> 
                 fileLayout,
                 fileType,
                 actionsLayout,
+                actionExe,
                 actionSync,
                 actionDelete,
                 actionShare;
-        private TextView fileName, fileSize, actionExe;
+        private TextView fileName, fileSize;
 
         public Holder(View itemView) {
             super(itemView);
@@ -72,16 +73,15 @@ public class FtpFileAdapter extends RecyclerView.Adapter<FtpFileAdapter.Holder> 
                 fileName.setText("[" + ftpItem.getName() + "]");
                 fileSize.setText(null);
 
-                actionExe.setText(R.string.action_open);
                 actionShare.setVisibility(View.INVISIBLE);
             } else {
-                actionExe.setText(R.string.action_execute);
                 actionShare.setVisibility(View.VISIBLE);
-
                 if (callback.isSynced(ftpItem)) {
                     fileType.getBackground().setLevel(2);
+                    actionShare.setEnabled(true);
                 } else {
                     fileType.getBackground().setLevel(1);
+                    actionShare.setEnabled(false);
                 }
                 fileSize.setText(Constant.getSize(ftpItem.length()));
                 fileName.setText(ftpItem.getName());

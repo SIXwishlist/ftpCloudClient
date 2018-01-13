@@ -10,9 +10,11 @@ import java.util.Arrays;
  */
 
 public class Constant {
-    private final static String CLOUD_FOLDER_NAME = "myCloudFtpFolder";
+    public final static String
+            ROOT = "/",
+            CLOUD_FOLDER_NAME = "myCloudFtpFolder";
 
-    public static String getDownloadFolder(){
+    public static String getDownloadFolder() {
         return Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath();
     }
 
@@ -25,7 +27,7 @@ public class Constant {
     }
 
     public static String getSize(long size) {
-        for (String sizeName : Arrays.asList("b", "kb", "Mb")) {
+        for (String sizeName : Arrays.asList("bytes", "Kb", "Mb")) {
             if (size < 1024) {
                 return size + sizeName;
             }

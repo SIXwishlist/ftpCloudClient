@@ -10,11 +10,13 @@ import java.util.List;
  */
 
 public class OnReadEvent {
+    public String path;
     public List<FtpItem> list;
     public String errorMessage;
 
-    public OnReadEvent(List<FtpItem> list) {
+    public OnReadEvent(List<FtpItem> list, String path) {
         this.list = list;
+        this.path = path;
     }
 
     public OnReadEvent(IOException e) {

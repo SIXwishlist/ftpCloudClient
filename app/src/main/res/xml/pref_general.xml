@@ -7,7 +7,7 @@
         android:title="SSL" />
 
     <EditTextPreference
-        android:defaultValue="91.244.59.24"
+        android:defaultValue="109.227.106.230"
         android:key="ftp_host"
         android:maxLines="1"
         android:selectAllOnFocus="true"

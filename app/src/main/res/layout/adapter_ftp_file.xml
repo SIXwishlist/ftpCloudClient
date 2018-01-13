@@ -3,9 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:paddingLeft="5dp"
-    android:paddingRight="5dp">
+    android:orientation="vertical">
 
     <LinearLayout
         android:id="@+id/fileLayout"
@@ -20,7 +18,7 @@
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:layout_marginRight="5dp"
-            android:background="@drawable/bg_file_type" />
+            android:background="@drawable/level_list_file_type" />
 
         <TextView
             android:id="@+id/name"
@@ -28,7 +26,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="dir"
-            android:textSize="30dp" />
+            android:textSize="20dp" />
 
         <TextView
             android:id="@+id/file_size"
@@ -45,44 +43,36 @@
         android:layout_marginTop="5dp"
         android:orientation="horizontal">
 
-        <TextView
+        <ImageView
             android:id="@+id/action_exe"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:drawableTop="@drawable/ic_execute"
-            android:gravity="center"
-            android:text="@string/action_execute" />
+            app:srcCompat="@drawable/button_exec" />
 
         <ImageView
             android:id="@+id/action_share"
-            android:layout_width="0dp"
-            android:layout_height="24dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            app:srcCompat="@drawable/ic_share" />
+            app:srcCompat="@drawable/button_share" />
 
         <ImageView
             android:id="@+id/action_sync"
-            android:layout_width="0dp"
-            android:layout_height="24dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            app:srcCompat="@drawable/ic_sync" />
+            app:srcCompat="@drawable/button_sync" />
 
         <ImageView
             android:id="@+id/action_delete"
-            android:layout_width="0dp"
-            android:layout_height="24dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            app:srcCompat="@drawable/ic_delete" />
+            app:srcCompat="@drawable/button_delete" />
 
     </LinearLayout>
 
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginBottom="5dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
-        android:layout_marginTop="5dp"
-        android:background="@color/colorPrimary" />
+    <View style="@style/separ" />
+
 </LinearLayout>

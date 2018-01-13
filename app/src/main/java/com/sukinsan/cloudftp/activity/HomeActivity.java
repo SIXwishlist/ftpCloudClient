@@ -39,17 +39,20 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.File;
 
+import static com.sukinsan.cloudftp.Constant.ROOT;
+
 public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Event, View.OnClickListener, SwipeRefreshLayout.OnRefreshListener {
 
     private static final String TAG = HomeActivity.class.getSimpleName();
     private RecyclerView list;
 
-    private String currentFolder = "/";
-    private TextView dirTextView, statusBarTextView;
+    private View backHome;
+    private TextView titleView, statusBarView;
     private SwipeRefreshLayout swipeRefreshLayout;
+
+    private String currentDirectory = ROOT;
     private AsyncFtpUtils asyncFtpUtils;
     private FtpFileAdapter ftpFileAdapter;
-
     private SystemUtils systemUtils;
     private FtpUtils ftpUtils;
     private CloudSyncUtil cloudSyncUtil;
@@ -57,7 +60,7 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_scrolling);
+        setContentView(R.layout.activity_cloud);
 
         systemUtils = new SystemUtilsImpl(this);
         ftpUtils = new FtpUtilsImpl();
@@ -65,15 +68,21 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
         asyncFtpUtils = new AsyncFtpUtilsImpl(ftpUtils, cloudSyncUtil);
         ftpFileAdapter = new FtpFileAdapter(this);
 
-        statusBarTextView = findViewById(R.id.statusBar);
-        dirTextView = findViewById(R.id.txt_dir);
+        titleView = findViewById(R.id.txt_title);
+        statusBarView = findViewById(R.id.statusBar);
         list = findViewById(R.id.filesList);
         list.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         list.setAdapter(ftpFileAdapter);
 
         swipeRefreshLayout = findViewById(R.id.refresh);
         swipeRefreshLayout.setOnRefreshListener(this);
+        (backHome = findViewById(R.id.back)).setOnClickListener(this);
         findViewById(R.id.settings).setOnClickListener(this);
+    }
+
+    private void setStatusBar(String message) {
+        titleView.setText(currentDirectory);
+        statusBarView.setText(message);
     }
 
     @Override
@@ -89,7 +98,9 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
                 sharedPref.getString("ftp_username", ""),
                 sharedPref.getString("ftp_password", ""),
                 sharedPref.getBoolean("ftp_ssl", false));
-        statusBarTextView.setText("Connecting...");
+
+        setStatusBar("Connecting...");
+
     }
 
     private void openFtpFolder(String path) {
@@ -98,17 +109,14 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
             return;
         }
 
-        statusBarTextView.setText("Opening... " + path);
-
-        currentFolder = path;
-        dirTextView.setText(currentFolder);
         ftpFileAdapter.clear();
-        asyncFtpUtils.read(currentFolder);
+        setStatusBar("Opening... " + path);
+        asyncFtpUtils.read(path);
     }
 
     @Override
     public void onRefresh() {
-        openFtpFolder(currentFolder);
+        openFtpFolder(currentDirectory);
     }
 
     @Override
@@ -118,10 +126,10 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
 
     @Override
     public void onBackPressed() {
-        if (currentFolder.equals("/")) {
+        if (currentDirectory.equals(ROOT)) {
             super.onBackPressed();
         } else {
-            openFtpFolder(cloudSyncUtil.getPathParent(currentFolder));
+            openFtpFolder(cloudSyncUtil.getPathParent(currentDirectory));
         }
     }
 
@@ -155,10 +163,10 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
     public void OnConnected(OnConnectedEvent event) {
         Log.i(TAG, "OnConnected " + event.success);
         if (event.success) {
-            statusBarTextView.setText("Connected");
-            openFtpFolder(currentFolder);
+            setStatusBar("Connected");
+            openFtpFolder(currentDirectory);
         } else {
-            statusBarTextView.setText("Failed to connected");
+            setStatusBar("Failed to connected");
         }
     }
 
@@ -168,11 +176,18 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
             Toast.makeText(this, event.errorMessage, Toast.LENGTH_LONG).show();
         } else {
             swipeRefreshLayout.setRefreshing(false);
+            currentDirectory = event.path;
             Log.i(TAG, "OnRead " + event.list);
             long size = 0;
             for (FtpItem ftpItem : event.list) size += ftpItem.length();
-            statusBarTextView.setText(event.list.size() + " elements in folder, size of files here is " + Constant.getSize(size));
+            setStatusBar(event.list.size() + " elements, size of files here is " + Constant.getSize(size));
             ftpFileAdapter.setNewItems(event.list);
+
+            if (currentDirectory.equals(ROOT)) {
+                backHome.getBackground().setLevel(0);
+            } else {
+                backHome.getBackground().setLevel(1);
+            }
         }
     }
 
@@ -211,6 +226,11 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
     @Override
     public void onClick(View view) {
         switch (view.getId()) {
+            case R.id.back:
+                if (!currentDirectory.equals(ROOT)) {
+                    onBackPressed();
+                }
+                break;
             case R.id.settings:
                 startActivity(new Intent(this, SettingsActivity.class));
                 break;

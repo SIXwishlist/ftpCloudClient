@@ -1,6 +1,5 @@
 package com.sukinsan.cloudftp.util;
 
-import android.os.AsyncTask;
 import android.util.Log;
 
 import com.sukinsan.cloudftp.event.OnConnectedEvent;
@@ -72,11 +71,10 @@ public class AsyncFtpUtilsImpl implements AsyncFtpUtils {
             asyncAction.execute(new AsyncAction.Event() {
                 @Override
                 public void OnAsyncAction() {
-                    List<FtpItem> items = null;
                     try {
-                        items = ftpUtils.readFolder(path);
+                        List<FtpItem> items = ftpUtils.readFolder(path);
                         Log.i(TAG, "ftpUtils.cdLs " + items);
-                        asyncAction.setRes(new OnReadEvent(items));
+                        asyncAction.setRes(new OnReadEvent(items,path));
                         //EventBus.getDefault().post(new OnReadEvent(items));
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -88,7 +86,6 @@ public class AsyncFtpUtilsImpl implements AsyncFtpUtils {
         }
     }
 
-    //todo doesn't work for folders
     @Override
     public void delete(final FtpItem ftpItem) {
         if (actionReady()) {
@@ -97,7 +94,7 @@ public class AsyncFtpUtilsImpl implements AsyncFtpUtils {
                 @Override
                 public void OnAsyncAction() {
                     cloudSyncUtil.deleteRecursive(ftpItem);
-                    if (ftpUtils.delete(ftpItem.getPath())) {
+                    if (ftpUtils.delete(ftpItem.getPath(),ftpItem.isDirectory())) {
                         asyncAction.setRes(new OnDeleted(ftpItem));
                     } else {
                         asyncAction.setRes(new OnMessage("file was not removed"));

@@ -54,8 +54,4 @@
     <string name="pref_ringtone_silent">Silent</string>
 
     <string name="pref_title_vibrate">Vibrate</string>
-
-
-    <string name="action_execute">Execute</string>
-    <string name="action_open">Open</string>
 </resources>
