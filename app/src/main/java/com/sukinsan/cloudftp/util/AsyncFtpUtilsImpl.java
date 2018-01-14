@@ -93,7 +93,7 @@ public class AsyncFtpUtilsImpl implements AsyncFtpUtils {
             asyncAction.execute(new AsyncAction.Event() {
                 @Override
                 public void OnAsyncAction() {
-                    cloudSyncUtil.deleteRecursive(ftpItem);
+                    cloudSyncUtil.unSync(ftpItem);
                     if (ftpUtils.delete(ftpItem.getPath(),ftpItem.isDirectory())) {
                         asyncAction.setRes(new OnDeleted(ftpItem));
                     } else {

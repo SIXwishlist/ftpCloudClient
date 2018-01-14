@@ -18,6 +18,7 @@ import com.sukinsan.cloudftp.R;
 import com.sukinsan.cloudftp.adapter.FtpFileAdapter;
 import com.sukinsan.cloudftp.event.OnConnectedEvent;
 import com.sukinsan.cloudftp.event.OnDeleted;
+import com.sukinsan.cloudftp.event.OnDownloaded;
 import com.sukinsan.cloudftp.event.OnFtpBusy;
 import com.sukinsan.cloudftp.event.OnMessage;
 import com.sukinsan.cloudftp.event.OnReadEvent;
@@ -25,6 +26,7 @@ import com.sukinsan.cloudftp.event.OnSynced;
 import com.sukinsan.cloudftp.service.SyncService;
 import com.sukinsan.cloudftp.util.AsyncFtpUtils;
 import com.sukinsan.cloudftp.util.AsyncFtpUtilsImpl;
+import com.sukinsan.cloudftp.util.CloudStorageImpl;
 import com.sukinsan.cloudftp.util.SystemUtils;
 import com.sukinsan.cloudftp.util.SystemUtilsImpl;
 import com.sukinsan.koshcloudcore.item.FtpItem;
@@ -32,6 +34,7 @@ import com.sukinsan.koshcloudcore.util.CloudSyncUtil;
 import com.sukinsan.koshcloudcore.util.CloudSyncUtilImpl;
 import com.sukinsan.koshcloudcore.util.FtpUtils;
 import com.sukinsan.koshcloudcore.util.FtpUtilsImpl;
+import com.sukinsan.koshcloudcore.util.MyFileUtils;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -56,6 +59,7 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
     private SystemUtils systemUtils;
     private FtpUtils ftpUtils;
     private CloudSyncUtil cloudSyncUtil;
+    private MyFileUtils myFileUtils = MyFileUtils.getInstance();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,8 +67,8 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
         setContentView(R.layout.activity_cloud);
 
         systemUtils = new SystemUtilsImpl(this);
-        ftpUtils = new FtpUtilsImpl();
-        cloudSyncUtil = new CloudSyncUtilImpl(ftpUtils, Constant.getCloudFolder());
+        ftpUtils = FtpUtilsImpl.newInstance(null);
+        cloudSyncUtil = new CloudSyncUtilImpl(ftpUtils, Constant.getCloudFolder(), new CloudStorageImpl(this));
         asyncFtpUtils = new AsyncFtpUtilsImpl(ftpUtils, cloudSyncUtil);
         ftpFileAdapter = new FtpFileAdapter(this);
 
@@ -104,11 +108,6 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
     }
 
     private void openFtpFolder(String path) {
-        if (!asyncFtpUtils.isConnected()) {
-            swipeRefreshLayout.setRefreshing(false);
-            return;
-        }
-
         ftpFileAdapter.clear();
         setStatusBar("Opening... " + path);
         asyncFtpUtils.read(path);
@@ -129,7 +128,7 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
         if (currentDirectory.equals(ROOT)) {
             super.onBackPressed();
         } else {
-            openFtpFolder(cloudSyncUtil.getPathParent(currentDirectory));
+            openFtpFolder(myFileUtils.getPathParent(currentDirectory));
         }
     }
 
@@ -215,6 +214,12 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
     public void OnSynced(OnMessage event) {
         Toast.makeText(this, event.message, Toast.LENGTH_SHORT).show();
     }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void OnSynced(OnDownloaded event) {
+        ftpFileAdapter.OnDownloaded(event.path, event.downloaded);
+    }
+
 
     @Override
     protected void onStop() {

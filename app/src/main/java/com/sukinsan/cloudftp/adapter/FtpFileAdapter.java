@@ -83,11 +83,16 @@ public class FtpFileAdapter extends RecyclerView.Adapter<FtpFileAdapter.Holder> 
                     fileType.getBackground().setLevel(1);
                     actionShare.setEnabled(false);
                 }
-                fileSize.setText(Constant.getSize(ftpItem.length()));
                 fileName.setText(ftpItem.getName());
+
+                if (ftpItem.equals(downloadingItem)) {
+                    fileSize.setText(Constant.getSize(downloaded) + " out of " + Constant.getSize(ftpItem.length()));
+                } else {
+                    fileSize.setText(Constant.getSize(ftpItem.length()));
+                }
             }
 
-            if (selected == null || !ftpItem.getPath().equals(selected.getPath())) {
+            if (selectedItem == null || !ftpItem.getPath().equals(selectedItem.getPath())) {
                 actionsLayout.setVisibility(View.GONE);
             } else {
                 actionsLayout.setVisibility(View.VISIBLE);
@@ -97,7 +102,7 @@ public class FtpFileAdapter extends RecyclerView.Adapter<FtpFileAdapter.Holder> 
             fileLayout.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View view) {
-                    selected = ftpItem;
+                    selectedItem = ftpItem;
                     notifyDataSetChanged();
                     return true;
                 }
@@ -106,11 +111,10 @@ public class FtpFileAdapter extends RecyclerView.Adapter<FtpFileAdapter.Holder> 
             fileLayout.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    selected = null;
                     if (ftpItem.isDirectory() || callback.isSynced(ftpItem)) {
                         callback.OnActionExecute(ftpItem);
                     } else {
-                        selected = ftpItem;
+                        selectedItem = ftpItem;
                         notifyDataSetChanged();
                     }
                 }
@@ -121,16 +125,16 @@ public class FtpFileAdapter extends RecyclerView.Adapter<FtpFileAdapter.Holder> 
         public void onClick(View view) {
             switch (view.getId()) {
                 case R.id.action_exe:
-                    callback.OnActionExecute(selected);
+                    callback.OnActionExecute(selectedItem);
                     break;
                 case R.id.action_sync:
-                    callback.OnActionSync(selected);
+                    callback.OnActionSync(selectedItem);
                     break;
                 case R.id.action_delete:
-                    callback.OnActionDelete(selected);
+                    callback.OnActionDelete(selectedItem);
                     break;
                 case R.id.action_share:
-                    callback.OnActionShare(selected);
+                    callback.OnActionShare(selectedItem);
                     break;
             }
         }
@@ -138,7 +142,20 @@ public class FtpFileAdapter extends RecyclerView.Adapter<FtpFileAdapter.Holder> 
 
     private Event callback;
     private List<FtpItem> items;
-    private FtpItem selected;
+    private FtpItem selectedItem;
+    private FtpItem downloadingItem;
+    private long downloaded;
+
+    public void OnDownloaded(String path, long downloaded) {
+        for (int i = 0; i < items.size(); i++) {
+            if (items.get(i).getPath().equals(path)) {
+                downloadingItem = items.get(i);
+                this.downloaded = downloaded;
+                notifyItemChanged(i);
+                return;
+            }
+        }
+    }
 
     public FtpFileAdapter(@NonNull Event callback) {
         this.callback = callback;
@@ -153,7 +170,8 @@ public class FtpFileAdapter extends RecyclerView.Adapter<FtpFileAdapter.Holder> 
 
     public void clear() {
         this.items.clear();
-        this.selected = null;
+        selectedItem = null;
+        downloadingItem = null;
         notifyDataSetChanged();
     }
 
