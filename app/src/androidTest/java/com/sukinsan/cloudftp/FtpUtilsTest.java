@@ -1,12 +1,17 @@
 package com.sukinsan.cloudftp;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 
+import com.sukinsan.cloudftp.util.CloudStorageImpl;
 import com.sukinsan.koshcloudcore.item.FtpItem;
 import com.sukinsan.koshcloudcore.util.CloudSyncUtil;
 import com.sukinsan.koshcloudcore.util.CloudSyncUtilImpl;
 import com.sukinsan.koshcloudcore.util.FtpUtils;
 import com.sukinsan.koshcloudcore.util.FtpUtilsImpl;
+import com.sukinsan.koshcloudcore.util.MyCloudStorage;
 
 import org.junit.After;
 import org.junit.Before;
@@ -32,14 +37,18 @@ public class FtpUtilsTest {
     private CloudSyncUtil cloudSyncUtil;
     private String host, username, password;
     private int port;
+    private MyCloudStorage myCloudStorage;
+    private Context context;
 
     @Before
     public void setUp() {
-        ftpUtils = new FtpUtilsImpl();
-        cloudSyncUtil = new CloudSyncUtilImpl(ftpUtils, Constant.getCloudFolder());
-        host = "91.244.59.24";
+        ftpUtils = FtpUtilsImpl.newInstance(null);
+        context = InstrumentationRegistry.getContext();
+        myCloudStorage = new CloudStorageImpl(context);
+        cloudSyncUtil = new CloudSyncUtilImpl(ftpUtils, Constant.getCloudFolder(), myCloudStorage);
+        host = "109.227.106.230";
         username = "test";
-        password = "qwerty";
+        password = "test";
         port = 21;
     }
 
@@ -82,18 +91,37 @@ public class FtpUtilsTest {
     }
 
     @Test
+    public void check_storage() throws IOException {
+        SharedPreferences pref = context.getSharedPreferences(CloudSyncUtilImpl.class.getSimpleName(), Context.MODE_PRIVATE);
+
+        pref.edit().putString("other setting","something").commit();
+
+        assertThat(myCloudStorage.getAllPathStatuses().size(), is(0));
+
+        myCloudStorage.setPathStatus("a", CloudSyncUtil.SyncStatus.SYNC_FINISHED);
+        myCloudStorage.setPathStatus("b", CloudSyncUtil.SyncStatus.SYNC_PENDING);
+        myCloudStorage.setPathStatus("b", CloudSyncUtil.SyncStatus.SYNC_NOT);
+
+        assertThat(myCloudStorage.getAllPathStatuses().size(), is(2));
+    }
+
+    @Test
     public void check_syncing() throws IOException {
-        File cloudFolder = new File(Constant.getCloudFolder());
-        cloudSyncUtil.deleteRecursive(cloudFolder);
-        assertThat(cloudFolder.exists(), is(false));
+        //File cloudFolder = new File(Constant.getCloudFolder());
+        FtpItem item = new FtpItem("/", "/test", true, 0);
+        cloudSyncUtil.unSync(item);
 
         ftpUtils.connect(host, port, username, password, false);
         FtpItem ftpItem = ftpUtils.readFolder("/test/music/sod2001/CD1/").get(0);
-        cloudSyncUtil.sync(ftpItem);
+        cloudSyncUtil.sync(null, ftpItem);
 
-        assertThat(cloudFolder.exists(), is(true));
         assertThat(new File(Constant.getCloudFolder(), "/test/music/sod2001/CD1/Covers/back_2.jpg").exists(), is(true));
         assertThat(new File(Constant.getCloudFolder(), "/test/music/sod2001/CD1/Covers/Back.jpg").exists(), is(true));
         assertThat(new File(Constant.getCloudFolder(), "/test/music/sod2001/CD1/Covers/Front.jpg").exists(), is(true));
+
+        cloudSyncUtil.unSync(item);
+        assertThat(new File(Constant.getCloudFolder(), "/test/music/sod2001/CD1/Covers/back_2.jpg").exists(), is(false));
+        assertThat(new File(Constant.getCloudFolder(), "/test/music/sod2001/CD1/Covers/Back.jpg").exists(), is(false));
+        assertThat(new File(Constant.getCloudFolder(), "/test/music/sod2001/CD1/Covers/Front.jpg").exists(), is(false));
     }
 }
