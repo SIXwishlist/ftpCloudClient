@@ -62,7 +62,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            app:srcCompat="@drawable/button_sync" />
+            app:srcCompat="@drawable/level_list_cloud" />
 
         <ImageView
             android:id="@+id/action_delete"

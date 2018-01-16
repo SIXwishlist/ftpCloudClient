@@ -18,5 +18,7 @@ public interface AsyncFtpUtils {
 
     void delete(FtpItem ftpItem);
 
+    void unSync(FtpItem ftpItem);
+
     void disconnect();
 }

@@ -51,9 +51,7 @@ public class AsyncFtpUtilsImpl implements AsyncFtpUtils {
                 public void OnAsyncAction() {
                     boolean r = ftpUtils.connect(host, port, username, password, false);
                     Log.i(TAG, "ftpyUtils.connect " + r);
-
                     asyncAction.setRes(new OnConnectedEvent(r));
-                    //EventBus.getDefault().post(new OnConnectedEvent(r));
                 }
             });
         }
@@ -74,12 +72,10 @@ public class AsyncFtpUtilsImpl implements AsyncFtpUtils {
                     try {
                         List<FtpItem> items = ftpUtils.readFolder(path);
                         Log.i(TAG, "ftpUtils.cdLs " + items);
-                        asyncAction.setRes(new OnReadEvent(items,path));
-                        //EventBus.getDefault().post(new OnReadEvent(items));
+                        asyncAction.setRes(new OnReadEvent(items, path));
                     } catch (IOException e) {
                         e.printStackTrace();
                         asyncAction.setRes(new OnReadEvent(e));
-                        //EventBus.getDefault().post(new OnReadEvent(e));
                     }
                 }
             });
@@ -94,12 +90,25 @@ public class AsyncFtpUtilsImpl implements AsyncFtpUtils {
                 @Override
                 public void OnAsyncAction() {
                     cloudSyncUtil.unSync(ftpItem);
-                    if (ftpUtils.delete(ftpItem.getPath(),ftpItem.isDirectory())) {
+                    if (ftpUtils.delete(ftpItem.getPath(), ftpItem.isDirectory())) {
                         asyncAction.setRes(new OnDeleted(ftpItem));
                     } else {
                         asyncAction.setRes(new OnMessage("file was not removed"));
                     }
-                    //EventBus.getDefault().post(new OnDeleted(ftpItem));
+                }
+            });
+        }
+    }
+
+    @Override
+    public void unSync(final FtpItem ftpItem) {
+        if (actionReady()) {
+            lastAction = "unsyncing folder " + ftpItem.getName();
+            asyncAction.execute(new AsyncAction.Event() {
+                @Override
+                public void OnAsyncAction() {
+                    cloudSyncUtil.unSync(ftpItem);
+                    asyncAction.setRes(new OnDeleted(ftpItem));
                 }
             });
         }

@@ -119,7 +119,7 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
     }
 
     @Override
-    public boolean isSynced(FtpItem ftpItem) {
+    public CloudSyncUtil.SyncStatus isSynced(FtpItem ftpItem) {
         return cloudSyncUtil.isSynced(ftpItem);
     }
 
@@ -136,7 +136,7 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
     public void OnActionExecute(FtpItem ftpItem) {
         if (ftpItem.isDirectory()) {
             openFtpFolder(ftpItem.getPath());
-        } else if (cloudSyncUtil.isSynced(ftpItem)) {
+        } else if (cloudSyncUtil.isSynced(ftpItem) == CloudSyncUtil.SyncStatus.SYNC_FINISHED) {
             systemUtils.exec(new File(cloudSyncUtil.getLocationInFolder(ftpItem)));
         } else {
             SyncService.sync(this, ftpItem);
@@ -151,6 +151,11 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
     @Override
     public void OnActionSync(FtpItem ftpItem) {
         SyncService.sync(this, ftpItem);
+    }
+
+    @Override
+    public void OnActionUnSync(FtpItem ftpItem) {
+        asyncFtpUtils.unSync(ftpItem);
     }
 
     @Override

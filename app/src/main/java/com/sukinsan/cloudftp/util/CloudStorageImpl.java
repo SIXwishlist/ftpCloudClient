@@ -35,7 +35,8 @@ public class CloudStorageImpl implements MyCloudStorage {
 
     @Override
     public CloudSyncUtil.SyncStatus getPathStatus(String s) {
-        return CloudSyncUtil.SyncStatus.valueOf(pref.getString(s, CloudSyncUtil.SyncStatus.SYNC_NOT.name()));
+        CloudSyncUtil.SyncStatus st = CloudSyncUtil.SyncStatus.valueOf(pref.getString(PATH_PREF + s, CloudSyncUtil.SyncStatus.SYNC_NOT.name()));
+        return st;
     }
 
     @Override

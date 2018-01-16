@@ -6,11 +6,13 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.sukinsan.cloudftp.Constant;
 import com.sukinsan.cloudftp.R;
 import com.sukinsan.koshcloudcore.item.FtpItem;
+import com.sukinsan.koshcloudcore.util.CloudSyncUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,11 +25,13 @@ public class FtpFileAdapter extends RecyclerView.Adapter<FtpFileAdapter.Holder> 
     private static final String TAG = FtpFileAdapter.class.getSimpleName();
 
     public interface Event {
-        boolean isSynced(FtpItem ftpItem);
+        CloudSyncUtil.SyncStatus isSynced(FtpItem ftpItem);
 
         void OnActionExecute(FtpItem ftpItem);
 
         void OnActionSync(FtpItem ftpItem);
+
+        void OnActionUnSync(FtpItem ftpItem);
 
         void OnActionDelete(FtpItem ftpItem);
 
@@ -41,9 +45,9 @@ public class FtpFileAdapter extends RecyclerView.Adapter<FtpFileAdapter.Holder> 
                 fileType,
                 actionsLayout,
                 actionExe,
-                actionSync,
                 actionDelete,
                 actionShare;
+        private ImageView actionSync;
         private TextView fileName, fileSize;
 
         public Holder(View itemView) {
@@ -69,23 +73,40 @@ public class FtpFileAdapter extends RecyclerView.Adapter<FtpFileAdapter.Holder> 
 
         public void bind(final FtpItem ftpItem) {
             if (ftpItem.isDirectory()) {
-                fileType.getBackground().setLevel(0);
+                switch (callback.isSynced(ftpItem)) {
+                    case SYNC_NOT:
+                        fileType.getBackground().setLevel(3);
+                        actionSync.setImageLevel(3);
+                        break;
+                    case SYNC_PENDING:
+                        fileType.getBackground().setLevel(2);
+                        actionSync.setImageLevel(2);
+                        break;
+                    case SYNC_FINISHED:
+                        fileType.getBackground().setLevel(1);
+                        actionSync.setImageLevel(1);
+                        break;
+                }
                 fileName.setText("[" + ftpItem.getName() + "]");
                 fileSize.setText(null);
 
                 actionShare.setVisibility(View.INVISIBLE);
             } else {
                 actionShare.setVisibility(View.VISIBLE);
-                if (callback.isSynced(ftpItem)) {
-                    fileType.getBackground().setLevel(2);
-                    actionShare.setEnabled(true);
-                } else {
-                    fileType.getBackground().setLevel(1);
-                    actionShare.setEnabled(false);
+                switch (callback.isSynced(ftpItem)) {
+                    case SYNC_FINISHED:
+                        fileType.getBackground().setLevel(4);
+                        actionShare.setEnabled(true);
+                        break;
+                    default:
+                        fileType.getBackground().setLevel(5);
+                        actionShare.setEnabled(false);
+                        break;
                 }
+
                 fileName.setText(ftpItem.getName());
 
-                if (ftpItem.equals(downloadingItem)) {
+                if (ftpItem.getPath().equals(path)) {
                     fileSize.setText(Constant.getSize(downloaded) + " out of " + Constant.getSize(ftpItem.length()));
                 } else {
                     fileSize.setText(Constant.getSize(ftpItem.length()));
@@ -111,7 +132,7 @@ public class FtpFileAdapter extends RecyclerView.Adapter<FtpFileAdapter.Holder> 
             fileLayout.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    if (ftpItem.isDirectory() || callback.isSynced(ftpItem)) {
+                    if (ftpItem.isDirectory() || callback.isSynced(ftpItem) == CloudSyncUtil.SyncStatus.SYNC_FINISHED) {
                         callback.OnActionExecute(ftpItem);
                     } else {
                         selectedItem = ftpItem;
@@ -128,7 +149,14 @@ public class FtpFileAdapter extends RecyclerView.Adapter<FtpFileAdapter.Holder> 
                     callback.OnActionExecute(selectedItem);
                     break;
                 case R.id.action_sync:
-                    callback.OnActionSync(selectedItem);
+                    switch (callback.isSynced(selectedItem)) {
+                        case SYNC_NOT:
+                            callback.OnActionSync(selectedItem);
+                            break;
+                        case SYNC_FINISHED:
+                            callback.OnActionUnSync(selectedItem);
+                            break;
+                    }
                     break;
                 case R.id.action_delete:
                     callback.OnActionDelete(selectedItem);
@@ -143,18 +171,14 @@ public class FtpFileAdapter extends RecyclerView.Adapter<FtpFileAdapter.Holder> 
     private Event callback;
     private List<FtpItem> items;
     private FtpItem selectedItem;
-    private FtpItem downloadingItem;
+
+    private String path;
     private long downloaded;
 
     public void OnDownloaded(String path, long downloaded) {
-        for (int i = 0; i < items.size(); i++) {
-            if (items.get(i).getPath().equals(path)) {
-                downloadingItem = items.get(i);
-                this.downloaded = downloaded;
-                notifyItemChanged(i);
-                return;
-            }
-        }
+        this.path = path;
+        this.downloaded = downloaded;
+        notifyDataSetChanged();
     }
 
     public FtpFileAdapter(@NonNull Event callback) {
@@ -171,7 +195,6 @@ public class FtpFileAdapter extends RecyclerView.Adapter<FtpFileAdapter.Holder> 
     public void clear() {
         this.items.clear();
         selectedItem = null;
-        downloadingItem = null;
         notifyDataSetChanged();
     }
 

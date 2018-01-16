@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <level-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:minLevel="0" android:maxLevel="0" android:drawable="@drawable/ic_folder"/>
-    <item android:minLevel="1" android:maxLevel="1" android:drawable="@drawable/ic_file" />
-    <item android:minLevel="2" android:maxLevel="2" android:drawable="@drawable/ic_file_synced" />
+    <item android:minLevel="1" android:maxLevel="1" android:drawable="@drawable/ic_folder_synced"/>
+    <item android:minLevel="2" android:maxLevel="2" android:drawable="@drawable/ic_folder_pending"/>
+    <item android:minLevel="3" android:maxLevel="3" android:drawable="@drawable/ic_folder"/>
+    <item android:minLevel="4" android:maxLevel="4" android:drawable="@drawable/ic_file_synced" />
+    <item android:minLevel="5" android:maxLevel="5" android:drawable="@drawable/ic_file" />
 </level-list>
