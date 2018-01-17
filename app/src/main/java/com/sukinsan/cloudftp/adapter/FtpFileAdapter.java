@@ -97,10 +97,12 @@ public class FtpFileAdapter extends RecyclerView.Adapter<FtpFileAdapter.Holder> 
                     case SYNC_FINISHED:
                         fileType.getBackground().setLevel(4);
                         actionShare.setEnabled(true);
+                        actionSync.setImageLevel(1);
                         break;
                     default:
                         fileType.getBackground().setLevel(5);
                         actionShare.setEnabled(false);
+                        actionSync.setImageLevel(3);
                         break;
                 }
 
@@ -178,7 +180,11 @@ public class FtpFileAdapter extends RecyclerView.Adapter<FtpFileAdapter.Holder> 
     public void OnDownloaded(String path, long downloaded) {
         this.path = path;
         this.downloaded = downloaded;
-        notifyDataSetChanged();
+        for (FtpItem item : items) {
+            if (item.getPath().equals(path)) {
+                notifyDataSetChanged();
+            }
+        }
     }
 
     public FtpFileAdapter(@NonNull Event callback) {

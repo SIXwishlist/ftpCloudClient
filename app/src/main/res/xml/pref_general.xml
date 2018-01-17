@@ -26,7 +26,7 @@
 
     <EditTextPreference
         android:capitalize="words"
-        android:defaultValue="guest"
+        android:defaultValue="test"
         android:key="ftp_username"
         android:maxLines="1"
         android:selectAllOnFocus="true"
@@ -34,7 +34,7 @@
         android:title="Username" />
     <EditTextPreference
         android:capitalize="words"
-        android:defaultValue="guest"
+        android:defaultValue="test"
         android:key="ftp_password"
         android:maxLines="1"
         android:selectAllOnFocus="true"

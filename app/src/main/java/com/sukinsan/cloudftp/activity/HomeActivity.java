@@ -96,6 +96,7 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
 
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
 
+        swipeRefreshLayout.setRefreshing(true);
         asyncFtpUtils.connect(
                 sharedPref.getString("ftp_host", ""),
                 Integer.valueOf(sharedPref.getString("ftp_port", "21")),
@@ -108,6 +109,7 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
     }
 
     private void openFtpFolder(String path) {
+        swipeRefreshLayout.setRefreshing(true);
         ftpFileAdapter.clear();
         setStatusBar("Opening... " + path);
         asyncFtpUtils.read(path);
@@ -208,16 +210,19 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void OnSynced(OnDeleted event) {
         Toast.makeText(this, event.ftpItem.getName() + " has been removed", Toast.LENGTH_LONG).show();
+        onRefresh();
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void OnSynced(OnFtpBusy event) {
         Toast.makeText(this, event.message, Toast.LENGTH_SHORT).show();
+        ftpFileAdapter.notifyDataSetChanged();
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void OnSynced(OnMessage event) {
         Toast.makeText(this, event.message, Toast.LENGTH_SHORT).show();
+        ftpFileAdapter.notifyDataSetChanged();
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

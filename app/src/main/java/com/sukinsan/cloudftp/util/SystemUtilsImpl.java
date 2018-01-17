@@ -1,8 +1,13 @@
 package com.sukinsan.cloudftp.util;
 
+import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
 import android.util.Log;
 
@@ -75,6 +80,25 @@ public class SystemUtilsImpl implements SystemUtils {
         } else {
             return "*/*";
         }
+    }
+
+    @Override
+    public boolean doWeNeedAnyPermissions() {
+        return ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED;
+    }
+
+    @Override
+    public boolean doWeNeedToExplainWhyWeNeedThem(Activity activity) {
+        return ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE) ||
+                ActivityCompat.shouldShowRequestPermissionRationale(activity, Manifest.permission.READ_EXTERNAL_STORAGE);
+    }
+
+    @Override
+    public void askAllPermissionsWeNeed(Activity activity, int reqCode) {
+        ActivityCompat.requestPermissions(activity, new String[]{
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.READ_EXTERNAL_STORAGE}, reqCode);
     }
 
 }

@@ -140,17 +140,19 @@ public class SyncService extends IntentService implements MyFileUtils.OnProgress
         return null;
     }
 
-
     private String lastSentMessageHash;
+    private long lastSentTime = 0, interval = 300;
 
     @Override
     public void OnBytes(String s, long l) {
-        Log.i(TAG, "OnBytes " + l);
-        String size = Constant.getSize(l);
-        String hash = size + s;
-        if (!hash.equals(lastSentMessageHash)) {
-            lastSentMessageHash = hash;
-            EventBus.getDefault().post(new OnDownloaded(s, l));
+        if(l > MyFileUtils.oneKb && (lastSentTime + interval)<System.currentTimeMillis()) {
+            String size = Constant.getSize(l);
+            String hash = size + s;
+            if (!hash.equals(lastSentMessageHash)) {
+                lastSentMessageHash = hash;
+                lastSentTime = System.currentTimeMillis();
+                EventBus.getDefault().post(new OnDownloaded(s, l));
+            }
         }
     }
 }

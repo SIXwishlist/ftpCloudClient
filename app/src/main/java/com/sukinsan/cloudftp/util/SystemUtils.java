@@ -1,5 +1,6 @@
 package com.sukinsan.cloudftp.util;
 
+import android.app.Activity;
 import android.net.Uri;
 
 import java.io.File;
@@ -17,5 +18,11 @@ public interface SystemUtils {
     Uri getUri(File file);
 
     String getFileMimeType(File file);
+
+    boolean doWeNeedAnyPermissions();
+
+    boolean doWeNeedToExplainWhyWeNeedThem(Activity activity);
+
+    void askAllPermissionsWeNeed(Activity activity, int reqCode);
 
 }
