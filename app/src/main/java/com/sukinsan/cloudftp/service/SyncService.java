@@ -33,6 +33,7 @@ public class SyncService extends IntentService implements MyFileUtils.OnProgress
 
     public static final String
             TAG = SyncService.class.getSimpleName(),
+            ACTION_CHECK = "ACTION_CHECK",
             ACTION_SYNC = "ACTION_SYNC";
 
     private FtpUtils ftpUtils;
@@ -40,6 +41,14 @@ public class SyncService extends IntentService implements MyFileUtils.OnProgress
 
     public SyncService() {
         super("SyncService");
+    }
+
+    // todo add logic of frequenly of calling this method
+    public static void check(Context context, FtpItem ftpItem) {
+        context.startService(new Intent(context, SyncService.class)
+                .setAction(ACTION_CHECK)
+                .putExtra(FtpItem.class.getSimpleName(), ftpItem)
+        );
     }
 
     public static void sync(Context context, FtpItem ftpItem) {
@@ -82,12 +91,23 @@ public class SyncService extends IntentService implements MyFileUtils.OnProgress
                 case ACTION_SYNC:
                     sync(item);
                     break;
+                case ACTION_CHECK:
+                    check();
+                    break;
             }
-
         } catch (IOException e) {
             e.printStackTrace();
             EventBus.getDefault().post(new OnSynced(e));
         }
+    }
+
+    private void check() throws IOException {
+        checkConnection();
+        showNotification(getString(R.string.app_name), "Checking");
+        Log.i(TAG, "start check");
+        cloudSyncUtil.checkSyncedFolders(this);
+        stopForeground(true);
+        Log.i(TAG, "finish check");
     }
 
     private void sync(FtpItem ftpItem) throws IOException {
@@ -145,7 +165,7 @@ public class SyncService extends IntentService implements MyFileUtils.OnProgress
 
     @Override
     public void OnBytes(String s, long l) {
-        if(l > MyFileUtils.oneKb && (lastSentTime + interval)<System.currentTimeMillis()) {
+        if (l > MyFileUtils.oneKb && (lastSentTime + interval) < System.currentTimeMillis()) {
             String size = Constant.getSize(l);
             String hash = size + s;
             if (!hash.equals(lastSentMessageHash)) {
