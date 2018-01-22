@@ -16,6 +16,7 @@ import android.util.Log;
 import com.sukinsan.cloudftp.Constant;
 import com.sukinsan.cloudftp.R;
 import com.sukinsan.cloudftp.event.OnDownloaded;
+import com.sukinsan.cloudftp.event.OnMessage;
 import com.sukinsan.cloudftp.event.OnSynced;
 import com.sukinsan.cloudftp.util.CloudStorageImpl;
 import com.sukinsan.koshcloudcore.item.FtpItem;
@@ -44,10 +45,9 @@ public class SyncService extends IntentService implements MyFileUtils.OnProgress
     }
 
     // todo add logic of frequenly of calling this method
-    public static void check(Context context, FtpItem ftpItem) {
+    public static void check(Context context) {
         context.startService(new Intent(context, SyncService.class)
                 .setAction(ACTION_CHECK)
-                .putExtra(FtpItem.class.getSimpleName(), ftpItem)
         );
     }
 
@@ -83,22 +83,24 @@ public class SyncService extends IntentService implements MyFileUtils.OnProgress
 
     @Override
     protected void onHandleIntent(@Nullable Intent intent) {
-        FtpItem item = (FtpItem) intent.getSerializableExtra(FtpItem.class.getSimpleName());
         String action = intent.getAction();
-        Log.i(TAG, "prepear to sync " + item.getName());
         try {
             switch (action) {
                 case ACTION_SYNC:
+                    FtpItem item = (FtpItem) intent.getSerializableExtra(FtpItem.class.getSimpleName());
                     sync(item);
                     break;
                 case ACTION_CHECK:
                     check();
                     break;
             }
+            EventBus.getDefault().post(new OnMessage(OnMessage.Action.SYNC_START));
         } catch (IOException e) {
             e.printStackTrace();
-            EventBus.getDefault().post(new OnSynced(e));
+            EventBus.getDefault().post(new OnMessage(OnMessage.Action.TEXT_ERROR,e.getMessage()));
         }
+
+
     }
 
     private void check() throws IOException {

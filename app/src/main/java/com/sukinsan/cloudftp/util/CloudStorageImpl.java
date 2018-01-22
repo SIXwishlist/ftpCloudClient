@@ -46,7 +46,7 @@ public class CloudStorageImpl implements MyCloudStorage {
         for (String key : all.keySet()) {
             if (key.contains(PATH_PREF)) {
                 String value = all.get(key).toString();
-                paths.put(key, CloudSyncUtil.SyncStatus.valueOf(value));
+                paths.put(key.substring(PATH_PREF.length()), CloudSyncUtil.SyncStatus.valueOf(value));
             }
         }
         return paths;

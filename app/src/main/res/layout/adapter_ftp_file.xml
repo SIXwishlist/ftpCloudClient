@@ -62,7 +62,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            app:srcCompat="@drawable/level_list_cloud" />
+            app:srcCompat="@drawable/level_list_cloud_button" />
 
         <ImageView
             android:id="@+id/action_delete"

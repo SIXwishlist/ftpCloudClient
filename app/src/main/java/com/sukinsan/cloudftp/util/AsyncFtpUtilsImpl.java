@@ -3,7 +3,6 @@ package com.sukinsan.cloudftp.util;
 import android.util.Log;
 
 import com.sukinsan.cloudftp.event.OnConnectedEvent;
-import com.sukinsan.cloudftp.event.OnDeleted;
 import com.sukinsan.cloudftp.event.OnFtpBusy;
 import com.sukinsan.cloudftp.event.OnMessage;
 import com.sukinsan.cloudftp.event.OnReadEvent;
@@ -91,9 +90,9 @@ public class AsyncFtpUtilsImpl implements AsyncFtpUtils {
                 public void OnAsyncAction() {
                     cloudSyncUtil.unSync(ftpItem);
                     if (ftpUtils.delete(ftpItem.getPath(), ftpItem.isDirectory())) {
-                        asyncAction.setRes(new OnDeleted(ftpItem));
+                        asyncAction.setRes(new OnMessage(OnMessage.Action.TEXT_MESSAGE,ftpItem.getName() + " has been removed"));
                     } else {
-                        asyncAction.setRes(new OnMessage("file was not removed"));
+                        asyncAction.setRes(new OnMessage(OnMessage.Action.TEXT_MESSAGE,ftpItem.getName() + " was not removed"));
                     }
                 }
             });
@@ -108,7 +107,7 @@ public class AsyncFtpUtilsImpl implements AsyncFtpUtils {
                 @Override
                 public void OnAsyncAction() {
                     cloudSyncUtil.unSync(ftpItem);
-                    asyncAction.setRes(new OnDeleted(ftpItem));
+                    asyncAction.setRes(new OnMessage(OnMessage.Action.UNSYNC_SUCCESS));
                 }
             });
         }

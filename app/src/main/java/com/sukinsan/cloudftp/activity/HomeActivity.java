@@ -17,7 +17,6 @@ import com.sukinsan.cloudftp.Constant;
 import com.sukinsan.cloudftp.R;
 import com.sukinsan.cloudftp.adapter.FtpFileAdapter;
 import com.sukinsan.cloudftp.event.OnConnectedEvent;
-import com.sukinsan.cloudftp.event.OnDeleted;
 import com.sukinsan.cloudftp.event.OnDownloaded;
 import com.sukinsan.cloudftp.event.OnFtpBusy;
 import com.sukinsan.cloudftp.event.OnMessage;
@@ -49,7 +48,7 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
     private static final String TAG = HomeActivity.class.getSimpleName();
     private RecyclerView list;
 
-    private View backHome;
+    private View backHome, checkCloud, checkButton;
     private TextView titleView, statusBarView;
     private SwipeRefreshLayout swipeRefreshLayout;
 
@@ -72,6 +71,8 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
         asyncFtpUtils = new AsyncFtpUtilsImpl(ftpUtils, cloudSyncUtil);
         ftpFileAdapter = new FtpFileAdapter(this);
 
+        checkCloud = findViewById(R.id.check_cloud);
+        (checkButton = findViewById(R.id.check_button)).setOnClickListener(this);
         titleView = findViewById(R.id.txt_title);
         statusBarView = findViewById(R.id.statusBar);
         list = findViewById(R.id.filesList);
@@ -152,16 +153,19 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
 
     @Override
     public void OnActionSync(FtpItem ftpItem) {
+        //todo check wifi first time
         SyncService.sync(this, ftpItem);
     }
 
     @Override
     public void OnActionUnSync(FtpItem ftpItem) {
+        //todo confirm dialog
         asyncFtpUtils.unSync(ftpItem);
     }
 
     @Override
     public void OnActionDelete(FtpItem ftpItem) {
+        //todo confirm dialog
         asyncFtpUtils.delete(ftpItem);
     }
 
@@ -199,18 +203,24 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void OnSynced(OnSynced event) {
-        if (event.errorMessage != null) {
-            Toast.makeText(this, event.errorMessage, Toast.LENGTH_LONG).show();
-        } else {
-            ftpFileAdapter.notifyDataSetChanged();
-            Toast.makeText(this, event.amount + " synced", Toast.LENGTH_LONG).show();
-        }
+        ftpFileAdapter.notifyDataSetChanged();
+        Toast.makeText(this, event.amount + " synced", Toast.LENGTH_LONG).show();
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void OnSynced(OnDeleted event) {
-        Toast.makeText(this, event.ftpItem.getName() + " has been removed", Toast.LENGTH_LONG).show();
-        onRefresh();
+    public void OnMessage(OnMessage message) {
+        switch (message.action){
+            case SYNC_START:
+                break;
+            case TEXT_MESSAGE:
+            case TEXT_ERROR:
+                Toast.makeText(this, message.message, Toast.LENGTH_LONG).show();
+                //Toast.makeText(this, , Toast.LENGTH_LONG).show();
+                break;
+            case UNSYNC_SUCCESS:
+                ftpFileAdapter.notifyDataSetChanged();
+                break;
+        }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -248,6 +258,9 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
                 break;
             case R.id.settings:
                 startActivity(new Intent(this, SettingsActivity.class));
+                break;
+            case R.id.check_button:
+                SyncService.check(this);
                 break;
         }
     }

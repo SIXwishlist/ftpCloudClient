@@ -1,10 +1,7 @@
 package com.sukinsan.cloudftp.task;
 
 import android.os.AsyncTask;
-import android.os.Handler;
 import android.util.Log;
-
-import com.sukinsan.cloudftp.event.OnDeleted;
 
 import org.greenrobot.eventbus.EventBus;
 

@@ -8,7 +8,7 @@
 
     <TextView
         android:id="@+id/help_message"
-        android:drawableTop="@drawable/ic_cloud_shape_denied"
+        android:drawableTop="@drawable/ic_cloud_shape_denied_124"
         android:textSize="20sp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

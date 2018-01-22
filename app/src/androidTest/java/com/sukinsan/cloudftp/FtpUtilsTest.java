@@ -21,6 +21,7 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
@@ -102,7 +103,12 @@ public class FtpUtilsTest {
         myCloudStorage.setPathStatus("b", CloudSyncUtil.SyncStatus.SYNC_PENDING);
         myCloudStorage.setPathStatus("b", CloudSyncUtil.SyncStatus.SYNC_NOT);
 
-        assertThat(myCloudStorage.getAllPathStatuses().size(), is(2));
+        Map<String,CloudSyncUtil.SyncStatus> map = myCloudStorage.getAllPathStatuses();
+
+        assertThat(map.size(), is(2));
+        assertThat(map.containsKey("a"), is(true));
+        assertThat(map.containsKey("b"), is(true));
+
     }
 
     @Test
