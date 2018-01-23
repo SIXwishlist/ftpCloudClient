@@ -48,7 +48,7 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
     private static final String TAG = HomeActivity.class.getSimpleName();
     private RecyclerView list;
 
-    private View backHome, checkCloud, checkButton;
+    private View backHome, checkLayout,checkCloud, checkButton;
     private TextView titleView, statusBarView;
     private SwipeRefreshLayout swipeRefreshLayout;
 
@@ -71,8 +71,9 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
         asyncFtpUtils = new AsyncFtpUtilsImpl(ftpUtils, cloudSyncUtil);
         ftpFileAdapter = new FtpFileAdapter(this);
 
+        (checkLayout = findViewById(R.id.check_layout)).setOnClickListener(this);
         checkCloud = findViewById(R.id.check_cloud);
-        (checkButton = findViewById(R.id.check_button)).setOnClickListener(this);
+        checkButton = findViewById(R.id.check_button);
         titleView = findViewById(R.id.txt_title);
         statusBarView = findViewById(R.id.statusBar);
         list = findViewById(R.id.filesList);
@@ -259,7 +260,7 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
             case R.id.settings:
                 startActivity(new Intent(this, SettingsActivity.class));
                 break;
-            case R.id.check_button:
+            case R.id.check_layout:
                 SyncService.check(this);
                 break;
         }
