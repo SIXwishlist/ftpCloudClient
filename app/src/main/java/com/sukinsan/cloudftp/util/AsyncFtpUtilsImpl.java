@@ -3,7 +3,6 @@ package com.sukinsan.cloudftp.util;
 import android.util.Log;
 
 import com.sukinsan.cloudftp.event.OnConnectedEvent;
-import com.sukinsan.cloudftp.event.OnFtpBusy;
 import com.sukinsan.cloudftp.event.OnMessage;
 import com.sukinsan.cloudftp.event.OnReadEvent;
 import com.sukinsan.cloudftp.task.AsyncAction;
@@ -37,7 +36,7 @@ public class AsyncFtpUtilsImpl implements AsyncFtpUtils {
             asyncAction = new AsyncAction();
             return true;
         }
-        EventBus.getDefault().post(new OnFtpBusy("Sorry, but '" + lastAction + "' is in progress"));
+        EventBus.getDefault().post(new OnMessage("Sorry, but '" + lastAction + "' is in progress"));
         return false;
     }
 
@@ -90,9 +89,9 @@ public class AsyncFtpUtilsImpl implements AsyncFtpUtils {
                 public void OnAsyncAction() {
                     cloudSyncUtil.unSync(ftpItem);
                     if (ftpUtils.delete(ftpItem.getPath(), ftpItem.isDirectory())) {
-                        asyncAction.setRes(new OnMessage(OnMessage.Action.TEXT_MESSAGE,ftpItem.getName() + " has been removed"));
+                        asyncAction.setRes(new OnMessage(OnMessage.Action.SYNC_STATUS,ftpItem.getName() + " has been removed"));
                     } else {
-                        asyncAction.setRes(new OnMessage(OnMessage.Action.TEXT_MESSAGE,ftpItem.getName() + " was not removed"));
+                        asyncAction.setRes(new OnMessage(OnMessage.Action.SYNC_STATUS,ftpItem.getName() + " was not removed"));
                     }
                 }
             });
@@ -107,7 +106,7 @@ public class AsyncFtpUtilsImpl implements AsyncFtpUtils {
                 @Override
                 public void OnAsyncAction() {
                     cloudSyncUtil.unSync(ftpItem);
-                    asyncAction.setRes(new OnMessage(OnMessage.Action.UNSYNC_SUCCESS));
+                    asyncAction.setRes(new OnMessage(OnMessage.Action.SYNC_UNSYNCED));
                 }
             });
         }

@@ -6,14 +6,18 @@ package com.sukinsan.cloudftp.event;
 
 public class OnMessage {
     public enum Action {
-        SYNC_START,
-        SYNC_SUCCESS,
-        SYNC_FAILED,
-        TEXT_MESSAGE, TEXT_ERROR, UNSYNC_SUCCESS,
+        SYNC_STATUS,
+        SYNC_UNSYNCED,
+        TEXT_MESSAGE
     }
 
     public Action action;
     public String message;
+
+    public OnMessage(String message) {
+        this.action = Action.TEXT_MESSAGE;
+        this.message = message;
+    }
 
     public OnMessage(Action action) {
         this.action = action;

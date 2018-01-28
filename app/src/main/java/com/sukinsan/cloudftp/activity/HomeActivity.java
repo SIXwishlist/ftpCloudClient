@@ -18,10 +18,8 @@ import com.sukinsan.cloudftp.R;
 import com.sukinsan.cloudftp.adapter.FtpFileAdapter;
 import com.sukinsan.cloudftp.event.OnConnectedEvent;
 import com.sukinsan.cloudftp.event.OnDownloaded;
-import com.sukinsan.cloudftp.event.OnFtpBusy;
 import com.sukinsan.cloudftp.event.OnMessage;
 import com.sukinsan.cloudftp.event.OnReadEvent;
-import com.sukinsan.cloudftp.event.OnSynced;
 import com.sukinsan.cloudftp.service.SyncService;
 import com.sukinsan.cloudftp.util.AsyncFtpUtils;
 import com.sukinsan.cloudftp.util.AsyncFtpUtilsImpl;
@@ -48,7 +46,7 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
     private static final String TAG = HomeActivity.class.getSimpleName();
     private RecyclerView list;
 
-    private View backHome, checkLayout,checkCloud, checkButton;
+    private View backHome, checkLayout, checkCloud, checkButton;
     private TextView titleView, statusBarView;
     private SwipeRefreshLayout swipeRefreshLayout;
 
@@ -171,7 +169,7 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void OnConnected(OnConnectedEvent event) {
+    public void OnConnectedEvent(OnConnectedEvent event) {
         Log.i(TAG, "OnConnected " + event.success);
         if (event.success) {
             setStatusBar("Connected");
@@ -182,7 +180,7 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void OnRead(OnReadEvent event) {
+    public void OnReadEvent(OnReadEvent event) {
         if (event.errorMessage != null) {
             Toast.makeText(this, event.errorMessage, Toast.LENGTH_LONG).show();
         } else {
@@ -203,41 +201,23 @@ public class HomeActivity extends AppCompatActivity implements FtpFileAdapter.Ev
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void OnSynced(OnSynced event) {
-        ftpFileAdapter.notifyDataSetChanged();
-        Toast.makeText(this, event.amount + " synced", Toast.LENGTH_LONG).show();
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
     public void OnMessage(OnMessage message) {
-        switch (message.action){
-            case SYNC_START:
+        switch (message.action) {
+            case SYNC_STATUS:
+                Toast.makeText(this, message.message, Toast.LENGTH_LONG).show();
+                ftpFileAdapter.notifyDataSetChanged();
+                break;
+            case SYNC_UNSYNCED:
+                ftpFileAdapter.notifyDataSetChanged();
                 break;
             case TEXT_MESSAGE:
-            case TEXT_ERROR:
                 Toast.makeText(this, message.message, Toast.LENGTH_LONG).show();
-                //Toast.makeText(this, , Toast.LENGTH_LONG).show();
-                break;
-            case UNSYNC_SUCCESS:
-                ftpFileAdapter.notifyDataSetChanged();
                 break;
         }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void OnSynced(OnFtpBusy event) {
-        Toast.makeText(this, event.message, Toast.LENGTH_SHORT).show();
-        ftpFileAdapter.notifyDataSetChanged();
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void OnSynced(OnMessage event) {
-        Toast.makeText(this, event.message, Toast.LENGTH_SHORT).show();
-        ftpFileAdapter.notifyDataSetChanged();
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void OnSynced(OnDownloaded event) {
+    public void OnDownloaded(OnDownloaded event) {
         ftpFileAdapter.OnDownloaded(event.path, event.downloaded);
     }
 

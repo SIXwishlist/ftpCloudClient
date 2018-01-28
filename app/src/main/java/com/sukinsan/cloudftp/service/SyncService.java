@@ -17,7 +17,6 @@ import com.sukinsan.cloudftp.Constant;
 import com.sukinsan.cloudftp.R;
 import com.sukinsan.cloudftp.event.OnDownloaded;
 import com.sukinsan.cloudftp.event.OnMessage;
-import com.sukinsan.cloudftp.event.OnSynced;
 import com.sukinsan.cloudftp.util.CloudStorageImpl;
 import com.sukinsan.koshcloudcore.item.FtpItem;
 import com.sukinsan.koshcloudcore.util.CloudSyncUtil;
@@ -94,10 +93,9 @@ public class SyncService extends IntentService implements MyFileUtils.OnProgress
                     check();
                     break;
             }
-            EventBus.getDefault().post(new OnMessage(OnMessage.Action.SYNC_START));
         } catch (IOException e) {
             e.printStackTrace();
-            EventBus.getDefault().post(new OnMessage(OnMessage.Action.TEXT_ERROR,e.getMessage()));
+            EventBus.getDefault().post(new OnMessage(OnMessage.Action.TEXT_MESSAGE, e.getMessage()));
         }
 
 
@@ -118,7 +116,8 @@ public class SyncService extends IntentService implements MyFileUtils.OnProgress
         Log.i(TAG, "start sync " + ftpItem.getName());
 
         int r = cloudSyncUtil.sync(this, ftpItem);
-        EventBus.getDefault().post(new OnSynced(r, ftpItem));
+        String message = r + " items synced";
+        EventBus.getDefault().post(new OnMessage(OnMessage.Action.SYNC_STATUS, message));
 
         stopForeground(true);
         Log.i(TAG, "finish sync" + ftpItem.getName());
